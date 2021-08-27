@@ -1,4 +1,3 @@
-import re
 import sys
 import subprocess
 import glob
@@ -33,12 +32,13 @@ def recursively_discover_repos(top: Path):
 parser = ArgumentParser()
 parser.add_argument("--mode", "--discover", "--discover-mode", action="store", choices=["recursive", "glob"],
                     default="recursive")
+parser.add_argument("--pattern", "--dir", action="store", default=None)
 args = parser.parse_args()
 
 os.chdir(Path.home())
 
 if args.mode == "glob":
-    glob_pattern = Prompt.ask(
+    glob_pattern = args.pattern or Prompt.ask(
         "Please enter glob pattern",
         console=console,
         default="./*/*/.git"
@@ -48,7 +48,7 @@ if args.mode == "glob":
     dirs = glob.glob(glob_pattern)
 else:
     index_directory = Path(
-        Prompt.ask("Which top-level directory should be indexed?", default=str(Path.home()))
+        args.pattern or Prompt.ask("Which top-level directory should be indexed?", default=str(Path.home()))
     )
     if not index_directory.exists():
         console.print("Directory doesn't exist.")
