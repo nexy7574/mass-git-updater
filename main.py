@@ -14,10 +14,12 @@ from logger import log, logfile
 console = Console()
 
 
-def recursively_discover_repos(top: Path):
+def recursively_discover_repos(top: Path, *, status = None):
     discovered = []
     for root, subdirs, files in os.walk(top):
         log("Indexing: " + root)
+        if status:
+            status.update("Indexing %s" % root)
         root = Path(root).resolve()
         if (root / ".git").exists():
             log("Found repo at: " + str(root.resolve()))
@@ -53,8 +55,8 @@ else:
     if not index_directory.exists():
         console.print("Directory doesn't exist.")
         sys.exit()
-    with console.status("Searching for git repositories in " + str(index_directory.resolve()), spinner="arrow3"):
-        dirs = list(map(str, recursively_discover_repos(index_directory)))
+    with console.status("Searching for git repositories in " + str(index_directory.resolve()), spinner="arrow3") as status:
+        dirs = list(map(str, recursively_discover_repos(index_directory, status=status)))
 
 for path in track(dirs, description="Running 'git pull'", console=console):
     os.chdir(Path.home())
